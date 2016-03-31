@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html> 
+<head>
+    <!-- META -->
+    <meta charset="utf-8">
+    <title>TravelTips</title>
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+
+    <!-- CSS -->
+    <link href="css/ratchet.css" rel="stylesheet">
+
+    <!-- JS -->
+    <script type="text/javascript" src="js/ratchet.js"></script>
+    <script type="text/javascript" src="cordova.js"></script>
+    <script type="text/javascript" src="js/jquery.js"></script>
+    <script type="text/javascript" src="js/main.js"></script>
+
+
+</head>
+<body>
+
+    <!-- Make sure all your bars are the first things in your <body> -->
+    <header class="bar bar-nav">
+        <h1 class="title">TravelTips</h1>
+    </header>
+
+    <nav class="bar bar-tab">
+        <div id="modalContainer">
+        </div>
+    </nav>
+
+    <!-- Wrap all non-bar HTML in the .content div (this is actually what scrolls) -->
+    <div class="content">
+        <p class="content-padded">
+        <div class="card">
+        <ul class="table-view">
+            <li class="table-view-cell">
+                <a class="navigate-right" href="devtools.html" data-transition="slide-in">
+                    <strong>Developer tools</strong>
+                </a>
+            </li>
+        </ul>
+        </div>
+    </div>
+
+    <!-- Login modal -->
+    <div id="modalLogin" class="modal">
+        <header class="bar bar-nav">
+            <a class="icon icon-close pull-right btn-nav" href="#modalLogin"></a>
+            <h1 class="title">Login</h1>
+        </header>
+
+        <div class="content">
+            <div class="content-padded">
+
+            <center><h1>Login</h1></center>
+            <form>
+                <input id="username" type="text" placeholder="Username">
+                <input id="password" type="password" placeholder="Password">
+                <button class="btn btn-positive btn-block" onclick="return false;">Login</button>
+
+                <button onclick="formVal.ValidateLogin(this.form); return false;"></button>
+            </form>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Register modal -->
+    <div id="modalRegister" class="modal">
+        <header class="bar bar-nav">
+            <a class="icon icon-close pull-right btn-nav" href="#modalRegister"></a>
+            <h1 class="title">Registreer</h1>
+        </header>
+
+        <div class="content">
+            <div class="content-padded">
+
+            <center><h1>Registreer</h1></center>
+            <form>
+                <input id="email" type="email" placeholder="Email">
+                <input id="username" type="text" placeholder="Username">
+                <input id="password" type="password" placeholder="Password">
+                <button class="btn btn-positive btn-block">Registreer</button>
+
+                <button onclick="formVal.ValidateRegister(this.form); return false;">Test button index</button>
+
+            </form>
+
+
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // Load app main
+        app.initialize();
+    </script>
+
+  </body>
+</html>

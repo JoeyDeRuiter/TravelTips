@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html> 
+<head>
+    <!-- META -->
+    <meta charset="utf-8">
+    <title>TravelTips</title>
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+
+    <!-- CSS -->
+    <link href="css/ratchet.css" rel="stylesheet">
+
+    <!-- JS -->
+    <script src="js/ratchet.js"></script>
+    <script type="text/javascript" src="cordova.js"></script>
+    <script src="js/main.js"></script>
+</head>
+<body>
+
+    <!-- Make sure all your bars are the first things in your <body> -->
+    <header class="bar bar-nav">
+        <h1 class="title">TravelTips</h1>
+    </header>
+
+    <!-- Wrap all non-bar HTML in the .content div (this is actually what scrolls) -->
+    <div class="content">
+        <p class="content-padded">
+        <div class="card">
+        <ul class="table-view">
+            <li class="table-view-cell">
+                <a class="navigate-right" href="page2.html" data-transition="slide-in">
+                    <strong>Naar pagina 2</strong>
+                </a>
+            </li>
+        </ul>
+    </div>
+    </div>
+
+
+     <nav class="bar bar-tab">
+        <a class="tab-item" href="#">
+            <span class="icon icon-person"></span>
+            <span class="tab-label">Login</span>
+        </a>
+        <a class="tab-item" href="#">
+            <span class="icon icon-compose"></span>
+            <span class="tab-label">Registreer</span>
+        </a>
+        </nav>
+
+    <script>
+        // Load app main
+        app.initialize();
+        console.log(app.online);
+    </script>
+
+  </body>
+</html>
