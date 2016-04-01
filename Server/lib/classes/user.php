@@ -182,7 +182,7 @@ class user {
 
 		return false;
 	}
-
+/*
 	// Check if account is activated
 	public static function accountStatus($user_id) {
 		$mysqli = new database();
@@ -207,6 +207,40 @@ class user {
 		}
 
 		return false;
+	}
+*/
+
+	public static function activateAccount($string) {
+		$mysqli = new database;
+
+		if(empty($string)){
+			echo "ERROR: No user_id is filled in";
+			return;
+		}
+
+		if($stmt = $mysqli->prepare("SELECT `ID`, `user_id` FROM `activationurls` WHERE `rng_string` = ?")) {
+			// Get current url
+			$stmt->bind_param('s', $string);
+			$stmt->execute();
+			$stmt->store_result();
+			$stmt->bind_result($db_id, $db_user_id);
+
+			if($stmt->num_rows > 0) {
+				$stmt->fetch();
+
+				// Update the account
+				if($stmt_change = $mysqli->prepare("UPDATE `users` SET `status`='activated' WHERE `ID` = ?")) {
+					$stmt_change->bind_param('i', $db_user_id);
+					$stmt_change->execute();
+				}
+
+				// Delete the string
+				if($stmt_del = $mysqli->prepare("DELETE FROM `activationurls` WHERE `ID` = ?")) {
+					$stmt_del->bind_param('i', $db_id);
+					$stmt_del->execute();
+				}
+			}
+		}
 	}
 
 	// Get the username to linked tot he user id

@@ -46,14 +46,40 @@ if(isset($email) && isset($username) && isset($password) && isset($uuid)) {
 	}
 
 
-	if($stmt = $mysqli->prepare("INSERT INTO `users`(`ID`, `username`, `password`, `email`) VALUES (null, ?, ?, ?)")) {
+	if($stmt = $mysqli->prepare("INSERT INTO `users`(`ID`, `username`, `password`, `email`, `status`) VALUES (null, ?, ?, ?, default)")) {
 
 		$stmt->bind_param("sss", $username, $password, $email);
 
 		$password = password_hash($password, PASSWORD_DEFAULT);
 
 		if($stmt->execute()) {
-			// TODO: Auto logon
+
+			// Make a actiavtion url and mail it to the email adres
+			if($stmt_activation = $mysqli->prepare("INSERT INTO `activationurls`(`ID`, `user_id`, `rng_string`) VALUES (null, ?, ?)")) {
+
+				// Generate mail data
+				$user_id = $stmt->insert_id;
+				$rng_string = rand::string(0);
+				$stmt_activation->bind_param('is', $user_id, $rng_string);
+
+				if($stmt_activation->execute()) {
+					// Auto login
+
+					// Activate email
+					// Set up mail
+					$subject = "Welkom bij Traveltips";
+					$message = "Welkom bij Traveltips " . $username . ", activeer uw account op de volgende pagina : http://ap24-17.ict-lab.nl/activate.php?q=" . $rng_string;
+					$header = "From: noreply@traveltips.nl";
+
+					// Send mail
+					mail($email, $subject, $message, $header);
+
+				}else{
+					echo $stmt_activation->error;
+				}
+			}
+
+
 		}else{
 			echo json_encode(["status" => false, "msg" => "Er ging iets mis! Probeer het later opnieuw"]);
 			exit;
