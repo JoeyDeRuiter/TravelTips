@@ -14,8 +14,14 @@ if(isset($uuid) && isset($username) && isset($password)) {
 	$user = new user();
 
 	// Generate login key
-	if($user_id = $user->login($username, $password) != null) {
+	if($user_id = $user->login($username, $password)) {
+
+		// Check if the user id is an int
+		if(!is_int($user_id))
+			return;
+
 		list($status, $key) = $user->generateKey($uuid, $user_id);
-		echo json_encode(["status" => $status, "key" => $key]);
+		$username = $user->accountUsername($user_id);
+		echo json_encode(["status" => $status, "key" => $key, "username" => $username]);
 	}
 }

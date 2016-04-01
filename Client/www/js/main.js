@@ -1,9 +1,11 @@
 // -- APP Namespace --------------------
 var app = {};
 
-(function(){
-	var online = false;
+var username, online;
 
+online = false;
+
+(function(){
 	// Public function to load the app and check the connection
 	this.initialize = function() {
 		document.addEventListener('deviceready', DeviceReady, false);
@@ -26,7 +28,7 @@ var app = {};
 	// Triggers is the device has loaded the app contents (After splash screen)
 	function DeviceReady() {
 		StatusBar.styleLightContent();
-		
+		ui.lowerTab();
 	}
 
 	// Triggers every time a page is loaded
@@ -37,9 +39,7 @@ var app = {};
 		// Check backbutton
 		ui.CreateBackButton("NavBackButton");
 
-		//console.log(JSON.parse(ajax.ValidateKey().responseText).status);
-
-		//ui.lowerTab();
+		ui.lowerTab();
 	}
 
 }).apply(app);
@@ -66,6 +66,26 @@ var storage = {};
 	// Public function
 	this.readKey = function() {
 		return localStorage.getItem("__userKey");
+	}
+
+	// Public function
+	this.removeKey = function() {
+		return localStorage.removeItem("__userKey");
+	}
+
+	// Public function
+	this.writeUsername = function(username) {
+		return localStorage.setItem("__username", username);
+	}
+
+	// Public function
+	this.readUsername = function() {
+		return localStorage.getItem("__username");
+	}
+
+	// Public function
+	this.removeUsername = function() {
+		return localStorage.removeItem("__username");
 	}
 
 }).apply(storage); 
@@ -145,24 +165,24 @@ var ui = {};
 	// Public function
 	this.lowerTab = function() {
 		if(JSON.parse(ajax.ValidateKey().responseText).status == true) {
-			LoginContainer();
+			LoginContainer(storage.readUsername());
 		} else {
 			LogoutContainer();
 		}
 	}
 
 	// Public function
- 	function LoginContainer() {
+ 	function LoginContainer(username) {
 		var cnt = document.getElementById('modalContainer');
 
 		cnt.innerHTML = `
-			<a class="tab-item" href="#modalLogin">
+			<a class="tab-item" href="#modalProfile">
                 <span class="icon icon-person"></span>
-                <span class="tab-label">Aad</span>
+                <span class="tab-label">` + username + `</span>
             </a>
             <a class="tab-item" href="#modalRegister">
                 <span class="icon icon-compose"></span>
-                <span class="tab-label">is cool</span>
+                <span class="tab-label">Berichten</span>
             </a>
         `;
         
@@ -235,8 +255,6 @@ var deviceIO = {};
 // -- AJAX Namespace --------------------
 var ajax = {};
 (function(){
-	var userlogin = false;
-
 	// Public login
 	// Let the user login
 	this.UserLogin = function() {
@@ -256,11 +274,18 @@ var ajax = {};
 				obj = JSON.parse(data);
 				
 				if(obj.status == true) {
-					userlogin = true;
+
+					// Write random user key for secure login
 					storage.writeKey(obj.key);
+
+					// Write username for UI only
+					storage.writeUsername(obj.username);
+
+					// Update the nav bar
+					ui.lowerTab();
+
 					deviceIO.Alert("Je bent nu ingelogd", "Melding");
 				}else {
-					userlogin = false;
 					deviceIO.Alert("Er ging iets fout, probeer het opnieuw", "Melding");
 				}
 			},
@@ -285,8 +310,15 @@ var ajax = {};
 			success: function(data) {
 				obj = JSON.parse(data);
 				if(obj.status == true) {
-					userlogin = false;
-					deviceIO.Alert("Je bent nu uitgelogd", "Melding");
+					
+					// Remove the key
+					storage.removeKey();
+
+					// Remove the username
+					storage.removeUsername();
+
+					// Redirect to index page
+					window.location.href = "index.html";
 				}else {
 					userlogin = false;
 					deviceIO.Alert("Er ging iets fout, probeer het opnieuw", "Melding");
@@ -317,13 +349,10 @@ var ajax = {};
 
 				obj = JSON.parse(data);
 				if(obj.status == true) {
-					//console.log(obj);
 					console.log("Je bent nu ingelogd");
-					//deviceIO.Alert("Je bent nu ingelogd", "Melding");
 					return true;
 				}else {
 					console.log("Je bent nu uitgelogd");
-					//deviceIO.Alert("Je bent nu uitgelogd", "Melding");
 					return false;
 				}
 			},
@@ -353,11 +382,10 @@ var ajax = {};
 			dataType: "text",
 			contentType: "application/x-www-form-urlencoded; charset=utf-8",
 			success: function(data) {
-				//deviceIO.Alert(data, "???");
 				var obj = JSON && JSON.parse(data) || $.parseJSON(data);
 
 				if(obj.status === true) {
-					// Login
+					// TODOL Login
 				}else{
 					// Error
 					console.log(obj.msg);

@@ -208,4 +208,28 @@ class user {
 
 		return false;
 	}
+
+	// Get the username to linked tot he user id
+	public static function accountUsername($user_id) {
+		$mysqli = new database;
+
+		if(empty($user_id)){
+			echo "ERROR: No user_id is filled in";
+			return;
+		}
+
+		if($stmt = $mysqli->prepare("SELECT `username` FROM `users` WHERE `ID` = ?")) {
+			$stmt->bind_param('s', $user_id);
+			$stmt->execute();
+			$stmt->store_result();
+			$stmt->bind_result($db_username);
+
+			if($stmt->num_rows > 0) {
+				$stmt->fetch();
+
+				return $db_username;
+			}
+		}
+	}
+
 }
