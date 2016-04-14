@@ -109,7 +109,7 @@ class user {
 	// Checks if the key in the database is valid, and only exists once
 	// Arg: UUID (string) model (string) user_id (int)
 	// Return: bool
-	public function validKey($uuid, $key) {
+	public static function validKey($uuid, $key) {
 		$mysqli = new database();
 
 		if(empty($uuid)) {
@@ -182,33 +182,36 @@ class user {
 
 		return false;
 	}
-/*
-	// Check if account is activated
-	public static function accountStatus($user_id) {
-		$mysqli = new database();
+ 	
+ 	// Get the ID from the key
+	public function IDfromKey($uuid, $key) {
+		$mysqli = new database;
 
-		if(empty($user_id)){
-			echo "ERROR: No user_id is filled in";
-			return false;
+		if(empty($uuid)){
+			echo "ERROR: No uuid is filled in";
+			return;
 		}
 
-		// TODO: Maak DB aan en query
-		if($stmt = $mysqli->prepare("SELECT `status` FROM `` WHERE `user_id` = ?")) {
-			$stmt->bind_param('s', $user_id);
+		if(empty($key)){
+			echo "ERROR: No key is filled in";
+			return;
+		}
+
+		if($stmt = $mysqli->prepare("SELECT `user_id` FROM `devices` WHERE `device_uuid` = ? AND `device_key` = ?")) {
+			// Get current url
+			$uuid = hash('sha256', $uuid);
+
+			$stmt->bind_param('ss', $uuid, $key);
 			$stmt->execute();
 			$stmt->store_result();
-			$stmt->bind_result($db_status);
+			$stmt->bind_result($db_user_id);
 
 			if($stmt->num_rows > 0) {
 				$stmt->fetch();
-
-				return $db_status;
+				return $db_user_id;
 			}
 		}
-
-		return false;
 	}
-*/
 
 	public static function activateAccount($string) {
 		$mysqli = new database;
@@ -243,7 +246,29 @@ class user {
 		}
 	}
 
-	// Get the username to linked tot he user id
+	public static function accountStatus($user_id) {
+		$mysqli = new database;
+
+		if(empty($user_id) || !is_numeric($user_id)){
+			echo "ERROR: No user_id is filled in";
+			return;
+		}
+
+		if($stmt = $mysqli->prepare("SELECT `status` FROM `users` WHERE `ID` = ?")) {
+			$stmt->bind_param('i', $user_id);
+			$stmt->execute();
+			$stmt->store_result();
+			$stmt->bind_result($db_status);
+
+			if($stmt->num_rows > 0) {
+				$stmt->fetch();
+
+				return $db_status;
+			}
+		}
+	}
+
+	// Get the username to linked to the user id
 	public static function accountUsername($user_id) {
 		$mysqli = new database;
 
@@ -253,7 +278,7 @@ class user {
 		}
 
 		if($stmt = $mysqli->prepare("SELECT `username` FROM `users` WHERE `ID` = ?")) {
-			$stmt->bind_param('s', $user_id);
+			$stmt->bind_param('i', $user_id);
 			$stmt->execute();
 			$stmt->store_result();
 			$stmt->bind_result($db_username);
@@ -263,6 +288,45 @@ class user {
 
 				return $db_username;
 			}
+		}
+	}
+
+	public static function makeNotification($id, $post) {
+		$mysqli = new database;
+
+		if(empty($id))
+			return;
+
+		if(empty($post))
+			return;
+
+		if($stmt = $mysqli->prepare("INSERT INTO `notification`(`ID`, `user_ID`, `post`) VALUES (null, ?, ?)")) {
+			$stmt->bind_param('is', $id, $post);
+
+			if($stmt->execute()) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+	}
+
+	public static function readNotification($id) {
+		$mysqli = new database;
+
+		$posts = [];
+
+		if($stmt = $mysqli->prepare("SELECT `post` FROM `notification` WHERE `user_ID` = ? ORDER BY `ID` DESC")) {
+			$stmt->bind_param('i', $id);
+			$stmt->execute();
+			$stmt->store_result();
+			$stmt->bind_result($db_post);
+
+			while($stmt->fetch()) {
+				$posts[] = ["post" => $db_post];
+			}
+
+			return $posts;
 		}
 	}
 

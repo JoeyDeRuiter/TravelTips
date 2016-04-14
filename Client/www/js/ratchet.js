@@ -168,7 +168,7 @@
   };
 
   var bars = {
-    bartab             : '.bar-tab',
+    //bartab             : '.bar-tab',
     barnav             : '.bar-nav',
     barfooter          : '.bar-footer',
     barheadersecondary : '.bar-header-secondary'

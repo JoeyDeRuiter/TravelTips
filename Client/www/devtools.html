@@ -53,8 +53,6 @@
 
             <button class="btn btn-block" onclick="deviceIO.Vibrate(); return false;">Vibrate</button>
 
-            <!-- <button class="btn btn-block" onclick="deviceIO.Beep(); return false;">Beep</button> -->
-
             <button class="btn btn-block" onclick="ajax.ValidateKey(); return false;">Validate key</button>
 
             <button class="btn btn-block" onclick="ajax.UserLogout(); return false;">Log out</button>
@@ -78,9 +76,7 @@
             <form>
                 <input id="username" type="text" placeholder="Username">
                 <input id="password" type="password" placeholder="Password">
-                <button class="btn btn-positive btn-block" onclick="return false;">Login</button>
-
-                <button onclick="formVal.ValidateLogin(this.form); return false;"></button>
+                <button class="btn btn-positive btn-block" onclick="formVal.ValidateLogin(this.form); return false;">Login</button>
             </form>
 
             </div>

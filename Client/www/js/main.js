@@ -1,3 +1,10 @@
+// TODO LIST
+// 
+// NOTIFICATIONS MENU
+// EMAIL RESET
+// 
+
+
 // -- APP Namespace --------------------
 var app = {};
 
@@ -40,6 +47,8 @@ online = false;
 		ui.CreateBackButton("NavBackButton");
 
 		ui.lowerTab();
+		
+		www.getPage(location.pathname);
 	}
 
 }).apply(app);
@@ -139,6 +148,38 @@ var www = {};
 		}
 	}
 
+
+	this.getPage = function(pathName) {
+		var url = pathName.split("/"),
+			url_str = url[url.length-1];
+
+		var urlParams = www.getQueryParams();
+		switch(url_str) {
+			case "steden.html": ajax.getSteden(0, 5); console.log("Loading landen tips / steden"); break;
+			case "stedentips.html": ajax.getStedenTip(); console.log("Loading steden tips"); break;
+			case "landen.html": ajax.getLanden(0, 20); console.log("Loading landen data"); break;
+			case "landtip.html": ajax.getLandTip(urlParams.tip); console.log("Loading land tip data"); break;
+			case "tipmaken.html": ajax.getTipMaken(); console.log("Loading tip maken"); break;
+			case "notifications.html": ajax.getNotifications(); console.log("Loading notifications"); break;
+		}
+	}
+
+	this.getQueryParams = function() {
+		qs = document.location.search;
+		qs = qs.split('+').join(' ');
+
+	    var params = {},
+	        tokens,
+	        re = /[?&]?([^=]+)=([^&]*)/g;
+
+	    while (tokens = re.exec(qs)) {
+	        params[decodeURIComponent(tokens[1])] = decodeURIComponent(tokens[2]);
+	    }
+
+	    return params;
+	}
+
+
 }).apply(www);
 
 // -- UI Namespace --------------------
@@ -171,7 +212,7 @@ var ui = {};
 		}
 	}
 
-	// Public function
+	// Private function
  	function LoginContainer(username) {
 		var cnt = document.getElementById('modalContainer');
 
@@ -180,7 +221,7 @@ var ui = {};
                 <span class="icon icon-person"></span>
                 <span class="tab-label">` + username + `</span>
             </a>
-            <a class="tab-item" href="#modalRegister">
+            <a class="tab-item" href="notifications.html" data-transition="slide-in">
                 <span class="icon icon-compose"></span>
                 <span class="tab-label">Berichten</span>
             </a>
@@ -188,7 +229,7 @@ var ui = {};
         
 	}
 
-	// Public function
+	// Private function
 	function LogoutContainer() {
 		var cnt = document.getElementById('modalContainer');
 
@@ -203,6 +244,19 @@ var ui = {};
             </a>
         `;
         
+	}
+
+	// Public function
+	this.getStars = function(amount) {
+		switch (amount) {
+			case 0: return "<a class='icon icon-star'></a><a class='icon icon-star'></a><a class='icon icon-star'></a><a class='icon icon-star'></a><a class='icon icon-star'></a>";
+			case 1: return "<a class='icon icon-star-filled'></a><a class='icon icon-star'><a class='icon icon-star'></a><a class='icon icon-star'></a><a class='icon icon-star'></a></a>";
+			case 2: return "<a class='icon icon-star-filled'></a><a class='icon icon-star-filled'></a><a class='icon icon-star'></a><a class='icon icon-star'></a><a class='icon icon-star'></a>";
+			case 3: return "<a class='icon icon-star-filled'></a><a class='icon icon-star-filled'></a><a class='icon icon-star-filled'></a><a class='icon icon-star'></a><a class='icon icon-star'></a>";
+			case 4: return "<a class='icon icon-star-filled'></a><a class='icon icon-star-filled'></a><a class='icon icon-star-filled'></a><a class='icon icon-star-filled'></a><a class='icon icon-star'></a>";
+			case 5: return "<a class='icon icon-star-filled'></a><a class='icon icon-star-filled'></a><a class='icon icon-star-filled'></a><a class='icon icon-star-filled'></a><a class='icon icon-star-filled'></a>";
+			default: return "<a class='icon icon-star'></a><a class='icon icon-star'></a><a class='icon icon-star'></a><a class='icon icon-star'></a><a class='icon icon-star'></a>";
+		}
 	}
 
 }).apply(ui);
@@ -220,7 +274,6 @@ var deviceIO = {};
 		var title = 	 (typeof arguments[1] != 'undefined') ? arguments[1] : "Alert";
 		var buttonName = (typeof arguments[2] != 'undefined') ? arguments[2] : "Ok";
 		var invoke =	 (typeof arguments[3] != 'undefined') ? arguments[3] : null;
-		// TODO: Verander Oke naar iets beters
 		navigator.notification.alert(msg, invoke, title, buttonName);
 	}
 
@@ -255,6 +308,11 @@ var deviceIO = {};
 // -- AJAX Namespace --------------------
 var ajax = {};
 (function(){
+
+
+	var lastLandID, lastLandTipsID, lastStedenTipsID;
+
+
 	// Public login
 	// Let the user login
 	this.UserLogin = function() {
@@ -285,6 +343,10 @@ var ajax = {};
 					ui.lowerTab();
 
 					deviceIO.Alert("Je bent nu ingelogd", "Melding");
+
+					ajax.AccountValidate();
+
+					//window.location.href = "index.html";
 				}else {
 					deviceIO.Alert("Er ging iets fout, probeer het opnieuw", "Melding");
 				}
@@ -399,6 +461,654 @@ var ajax = {};
 			}
 		});	
 	}
+
+
+	// Public function
+	// Load landen data
+	this.getLanden = function(start, limit) {
+
+		$.ajax({
+			url: "http://ap24-17.ict-lab.nl/mobile/getlanden.php",
+			data: "uuid=" 		+ device.uuid
+				+ "&key=" 		+ storage.readKey()
+				+ "&start=" 	+ start
+				+ "&limit="		+ limit,
+			type: "POST",
+			dataType: "text",
+			contentType: "application/x-www-form-urlencoded; charset=utf-8",
+			success: function(data) {
+				var obj = JSON && JSON.parse(data) || $.parseJSON(data);
+
+				// Load the JSON data to the div
+				var landenHTML = "<div class=\"landenContainer\">";
+
+				obj.landen.forEach(function(element, index, array) {
+					landenHTML += "<li class=\"table-view-cell\">";
+					landenHTML += "<a class=\"navigate-right\" href=steden.html?land=" + element.id + " data-transition=\"slide-in\">";
+					landenHTML += "<span class=\"badge\">" + element.tips + "</span>";
+					landenHTML += element.landnaam + "</a>";
+					landenHTML += "</li>";
+				});
+
+				landenHTML += "</div>";
+
+
+				var addLandenButton = `
+					<li class="table-view-divider"></li>
+					<li class="table-view-cell">
+    					<a id=\"ShowMoreCountries\">
+     					Toon meer landen
+    					</a>
+  					</li>
+				`;
+
+				console.log("Data toe gevoegd");
+				$("#landenContainer").html(landenHTML + addLandenButton);
+
+				// Save last land ID
+				lastLandID = start + limit;
+
+
+				// Click event
+				$('#ShowMoreCountries').on('click', function() {
+					ajax.addLanden(lastLandID, 20);
+				});
+
+
+			},
+			error: function(data) {
+				//deviceIO.Alert(data);
+				console.log("Error: " + data);
+			}
+		});
+	}
+
+	// Public function
+	// Add landen data
+	this.addLanden = function(start, limit) {
+		$.ajax({
+			url: "http://ap24-17.ict-lab.nl/mobile/getlanden.php",
+			data: "uuid=" 		+ device.uuid
+				+ "&key=" 		+ storage.readKey()
+				+ "&start=" 	+ start
+				+ "&limit="		+ limit,
+			type: "POST",
+			dataType: "text",
+			contentType: "application/x-www-form-urlencoded; charset=utf-8",
+			success: function(data) {
+				var obj = JSON && JSON.parse(data) || $.parseJSON(data);
+				// Load the JSON data to the div
+				
+				if(obj.landen.length == 0) {
+					console.log("Alle landen worden getoond");
+					deviceIO.Alert("Alle landen worden getoond", "Melding");
+				}
+
+				var landenHTML = "";
+
+				obj.landen.forEach(function(element, index, array) {
+					landenHTML += "<li class=\"table-view-cell\">";
+					landenHTML += "<a class=\"navigate-right\" href=steden.html?land=" + element.id + " data-transition=\"slide-in\">";
+					landenHTML += "<span class=\"badge\">" + element.tips + "</span>";
+					landenHTML += element.landnaam + "</a>";
+					landenHTML += "</li>";
+				});
+
+				// Add html to the bottom
+				$('.landenContainer').append(landenHTML);
+
+
+				// Save last land id
+				lastLandID = start + limit;
+				
+			}
+		});
+	}
+
+	// Public function
+	// Load tip data from db
+	this.getLandTip = function(tip_id) {
+		$.ajax({
+			url: "http://ap24-17.ict-lab.nl/mobile/getlandentip.php",
+			data: "uuid=" 		+ device.uuid
+				+ "&key=" 		+ storage.readKey()
+				+ "&tip_id="	+ tip_id,
+			type: "POST",
+			dataType: "text",
+			contentType: "application/x-www-form-urlencoded; charset=utf-8",
+			success: function(data) {
+				var obj = JSON && JSON.parse(data) || $.parseJSON(data);
+
+				console.log(obj.tip);
+
+				// Load the JSON data to the div
+				var landenHTML = "<div>";
+
+					landenHTML += "<li class=\"table-view-cell\">";
+					landenHTML += "<a>";
+					landenHTML += "<h3>" + obj.tip.title + "</h3>";
+					landenHTML += "<h6>" + obj.tip.poster + "</h6>";
+					landenHTML += obj.tip.post + "</a>";
+					landenHTML += "</li>";
+					if(obj.status == true) {
+						landenHTML += "<label for=\"rate\" id=\"rateLabel\">" + ui.getStars(parseInt(obj.tip.rating / 10)) + "</label>";
+						landenHTML += "<select id=\"rate\" onchange=\"ajax.rateLandTip(this.value)\"><option disabled selected>Keis een rating</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select>";
+					} else {//ajax.rateLandTip(obj.tip.id, this.value);
+						landenHTML += "<label>" + ui.getStars(parseInt(obj.tip.rating / 10)) + "</label>";
+					}	
+					// Voeg poster toe
+				landenHTML += "</div>";
+
+
+				console.log("Data toe gevoegd");
+				$("#tipsContainer").html(landenHTML);
+
+
+			},
+			error: function(data) {
+				//deviceIO.Alert(data);
+				console.log("Error: " + data);
+			}
+		});
+	}
+
+	this.rateLandTip = function(value) {
+
+		var urlParams = www.getQueryParams();
+
+		$.ajax({
+			url: "http://ap24-17.ict-lab.nl/mobile/ratelanden.php",
+			data: "uuid=" 		+ device.uuid
+				+ "&key=" 		+ storage.readKey()
+				+ "&tip_id="	+ urlParams.tip
+				+ "&value="		+ value,
+			type: "POST",
+			dataType: "text",
+			contentType: "application/x-www-form-urlencoded; charset=utf-8",
+			success: function(data) {
+				var obj = JSON && JSON.parse(data) || $.parseJSON(data);
+
+				console.log(obj);
+
+				if(obj.succes == true) {
+					console.log("Rating is toegevoegd");
+					deviceIO.Alert("Rating is toegevoegd", "Melding");
+				} else {
+					deviceIO.Alert("Rating is niet toegevoegd", "Melding");
+				}
+
+			}
+		});
+	}
+
+	this.getSteden = function(start, limit) {
+
+		var params = www.getQueryParams();
+
+		$.ajax({
+			url: "http://ap24-17.ict-lab.nl/mobile/getlandentips.php",
+			data: "uuid=" 		+ device.uuid
+				+ "&key=" 		+ storage.readKey()
+				+ "&start=" 	+ start
+				+ "&limit="		+ limit
+				+ "&land_id=" 	+ params.land,
+			type: "POST",
+			dataType: "text",
+			contentType: "application/x-www-form-urlencoded; charset=utf-8",
+			success: function(data) {
+				var obj = JSON && JSON.parse(data) || $.parseJSON(data);
+
+				console.log(obj);
+
+				// Load the JSON data to the div
+				var landenHTML = "<div class=\"landenContainer\">";
+
+				obj.tips.forEach(function(element, index, array) {
+					landenHTML += "<li class=\"table-view-cell\">";
+					landenHTML += "<a class=\"navigate-right\" href=landtip.html?tip=" + element.id + " data-transition=\"slide-in\">";
+					landenHTML += "<h3>" + element.title + "</h3>";
+					landenHTML += element.post + "</br>Rating: " + element.rating + "</a>";
+					landenHTML += "</li>";
+				});
+
+				landenHTML += "</div>";
+
+
+				var addLandenButton = `
+					<li class="table-view-divider"></li>
+					<li class="table-view-cell">
+    					<a id=\"ShowMoreCountriesTips\">
+     					Toon meer tips
+    					</a>
+  					</li>
+				`;
+
+				console.log("Data toe gevoegd");
+				$("#landenContainer").html(landenHTML + addLandenButton);
+
+				// Save last land ID
+				lastLandTipsID = start + limit;
+
+
+				// Click event
+				$('#ShowMoreCountriesTips').on('click', function() {
+					ajax.addStedenTips(lastLandTipsID, 20);
+				});
+
+
+			},
+			error: function(data) {
+				//deviceIO.Alert(data);
+				console.log("Error: " + data);
+			}
+		});
+
+
+		$.ajax({
+			url: "http://ap24-17.ict-lab.nl/mobile/getsteden.php",
+			data: "uuid=" 		+ device.uuid
+				+ "&key=" 		+ storage.readKey()
+				+ "&start=" 	+ start
+				+ "&limit="		+ limit
+				+ "&land_id="		+ params.land,
+			type: "POST",
+			dataType: "text",
+			contentType: "application/x-www-form-urlencoded; charset=utf-8",
+			success: function(data) {
+				var obj = JSON && JSON.parse(data) || $.parseJSON(data);
+
+				console.log(obj);
+
+				// Load the JSON data to the div
+				var landenHTML = "<div class=\"stedenContainer\">";
+
+				obj.steden.forEach(function(element, index, array) {
+					landenHTML += "<li class=\"table-view-cell\">";
+					landenHTML += "<a class=\"navigate-right\" href=\"stedentips.html?naam=" + element.stadnaam + "&land=" + params.land + "\"data-transition=\"slide-in\">";
+					landenHTML += element.stadnaam  + "</a>";
+					landenHTML += "</li>";
+				});
+
+				landenHTML += "</div>";
+
+
+				var addLandenButton = `
+					<li class="table-view-divider"></li>
+					<li class="table-view-cell">
+    					<a id=\"ShowMoreSteden\">
+     					Toon meer steden
+    					</a>
+  					</li>
+				`;
+
+				console.log("Data toe gevoegd");
+				$("#stedenContainer").html(landenHTML + addLandenButton);
+
+				// Save last land ID
+				lastStedenTipsID = start + limit;
+
+
+				// Click event
+				$('#ShowMoreSteden').on('click', function() {
+					ajax.addSteden(lastStedenTipsID, 20);
+				});
+
+
+			},
+			error: function(data) {
+				//deviceIO.Alert(data);
+				console.log("Error: " + data);
+			}
+		});
+	}
+
+	this.addSteden = function(start, limit) {
+
+		var params = www.getQueryParams();
+
+		$.ajax({
+			url: "http://ap24-17.ict-lab.nl/mobile/getsteden.php",
+			data: "uuid=" 		+ device.uuid
+				+ "&key=" 		+ storage.readKey()
+				+ "&start=" 	+ start
+				+ "&limit="		+ limit
+				+ "&land_id="	+ params.land,
+			type: "POST",
+			dataType: "text",
+			contentType: "application/x-www-form-urlencoded; charset=utf-8",
+			success: function(data) {
+				var obj = JSON && JSON.parse(data) || $.parseJSON(data);
+
+				console.log(obj);
+
+				// Load the JSON data to the div
+				var landenHTML = "";
+
+				obj.steden.forEach(function(element, index, array) {
+					landenHTML += "<li class=\"table-view-cell\">";
+					landenHTML += "<a class=\"navigate-right\" href=\"stedentips.html?naam=" + element.stadnaam + "&land=" + params.land + "\"data-transition=\"slide-in\">";
+					landenHTML += element.stadnaam  + "</a>";
+					landenHTML += "</li>";
+				});
+
+				$(".stedenContainer").append(landenHTML);
+
+				console.log("Data toe gevoegd");
+
+				// Save last land ID
+				lastStedenTipsID = start + limit;
+
+			},
+			error: function(data) {
+				//deviceIO.Alert(data);
+				console.log("Error: " + data);
+			}
+		});
+	}
+
+	this.getStedenTip = function() {
+
+		var params = www.getQueryParams();
+
+		$.ajax({
+			url: "http://ap24-17.ict-lab.nl/mobile/getstedentips.php",
+			data: "uuid=" 		+ device.uuid
+				+ "&key=" 		+ storage.readKey()
+				+ "&naam="		+ params.naam
+				+ "&land="		+ params.land,
+			type: "POST",
+			dataType: "text",
+			contentType: "application/x-www-form-urlencoded; charset=utf-8",
+			success: function(data) {
+				var obj = JSON && JSON.parse(data) || $.parseJSON(data);
+
+				console.log(obj);
+
+				
+				// Load the JSON data to the div
+				var stedenHTML = "<div>";
+
+				obj.tips.forEach(function(element, index, array){
+
+					stedenHTML += "<li class=\"table-view-cell\">";
+					stedenHTML += "<a>";
+					stedenHTML += "<h3>" + element.title + "</h3>";
+					stedenHTML += "<h6>" + element.poster + "</h6>";
+					stedenHTML += element.post + "</a>";
+					stedenHTML += "</li>";
+					if(obj.status == true) {
+						stedenHTML += "<label for=\"rate\" id=\"rateLabel\">" + ui.getStars(parseInt(element.rating / 10)) + "</label>";
+						stedenHTML += "<select id=\"rate\" onchange=\"ajax.rateStadTip(this.value, " + element.id + ")\"><option disabled selected>Keis een rating</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select>";
+					} else {//ajax.rateLandTip(element.id, this.value);
+						stedenHTML += "<label>" + ui.getStars(parseInt(element.rating / 10)) + "</label>";
+					}
+					stedenHTML += "<li class=\"table-view-divider\"></li>";
+
+				});
+					// Voeg poster toe
+				stedenHTML += "</div>";
+
+
+				console.log("Data toe gevoegd");
+				$("#stedenContainer").html(stedenHTML);
+				
+
+			},
+			error: function(data) {
+				//deviceIO.Alert(data);
+				console.log("Error: " + data);
+			}
+		});
+	}
+
+	this.rateStadTip = function(value, id) {
+
+		alert(value);
+
+		$.ajax({
+			url: "http://ap24-17.ict-lab.nl/mobile/ratesteden.php",
+			data: "uuid=" 		+ device.uuid
+				+ "&key=" 		+ storage.readKey()
+				+ "&tip_id="	+ id
+				+ "&value="		+ value,
+			type: "POST",
+			dataType: "text",
+			contentType: "application/x-www-form-urlencoded; charset=utf-8",
+			success: function(data) {
+				var obj = JSON && JSON.parse(data) || $.parseJSON(data);
+
+				console.log(obj);
+
+				if(obj.succes == true) {
+					console.log("Rating is toegevoegd");
+					deviceIO.Alert("Rating is toegevoegd", "Melding");
+				} else {
+					deviceIO.Alert("Rating is niet toegevoegd", "Melding");
+				}
+
+			}
+		});
+
+	}
+
+ 	this.addStedenTips = function(start, limit) {
+		var params = www.getQueryParams();
+
+		$.ajax({
+			url: "http://ap24-17.ict-lab.nl/mobile/getlandentips.php",
+			data: "uuid=" 		+ device.uuid
+				+ "&key=" 		+ storage.readKey()
+				+ "&start=" 	+ start
+				+ "&limit="		+ limit
+				+ "&land_id=" 	+ params.land,
+			type: "POST",
+			dataType: "text",
+			contentType: "application/x-www-form-urlencoded; charset=utf-8",
+			success: function(data) {
+				var obj = JSON && JSON.parse(data) || $.parseJSON(data);
+
+				console.log(obj);
+
+				if(obj.tips.length == 0) {
+					console.log("Alle tips worden getoond");
+					deviceIO.Alert("Alle tips worden getoond", "Melding");
+				}
+
+				// Load the JSON data to the div
+				var landenHTML = "<div class=\"landenContainer\">";
+
+				obj.tips.forEach(function(element, index, array) {
+					landenHTML += "<li class=\"table-view-cell\">";
+					landenHTML += "<a class=\"navigate-right\" href=landtip.html?tip=" + element.id + " data-transition=\"slide-in\">";
+					landenHTML += "<h3>" + element.title + "</h3>";
+					landenHTML += element.post + "</br>Rating: " + element.rating + "</a>";
+					landenHTML += "</li>";
+				});
+
+				landenHTML += "</div>";
+
+				console.log("Data toe gevoegd");
+				$(".landenContainer").append(landenHTML);
+
+				// Save last land ID
+				lastLandTipsID = start + limit;
+			}
+		});
+	}
+
+
+	this.getTipMaken = function() {
+
+		// Add listener for change
+		$("#stadtoggle").on('click', function(){
+
+			if(!$("#stadtoggle").hasClass("active")) {
+				$("#stadnaam").hide();
+			} else {
+				$("#stadnaam").show()
+			}
+		});
+
+
+		$("#sendForm").click(function(evt){
+			evt.preventDefault();
+			ajax.TipMaken();
+		});
+
+		// Get landen from the db
+		$.ajax({
+			url: "http://ap24-17.ict-lab.nl/mobile/getlanden.php",
+			data: "uuid=" 		+ device.uuid
+				+ "&key=" 		+ storage.readKey()
+				+ "&start=" 	+ 0
+				+ "&limit="		+ 300,
+			type: "POST",
+			dataType: "text",
+			contentType: "application/x-www-form-urlencoded; charset=utf-8",
+			success: function(data) {
+				var obj = JSON && JSON.parse(data) || $.parseJSON(data);
+				// Load the JSON data to the div
+				
+				var landenHTML = "";
+
+				obj.landen.forEach(function(element, index, array) {
+					landenHTML += "<option value=\"" + element.id + "\">";
+					landenHTML += element.landnaam;
+					landenHTML += "</option>";
+				});
+
+				// Add html to the bottom
+				$('#tipsForm #landen').append(landenHTML);
+			}
+		});
+	}
+
+	this.TipMaken = function() {
+		if(storage.readKey() === null) {
+			console.log("Je moet ingelogd zijn om een tip te maken");
+			deviceIO.Alert("Je moet ingelogd zijn om een tip te maken", "Melding");
+			return;
+		}
+
+
+		var land = $("#landen").val(),
+			stadtoggle = $("#stadtoggle").hasClass("active"),
+			stadnaam = $("input#stadnaam").val(),
+			title = $("input#title").val(),
+			post = $("textarea#post").val();
+
+
+		alert(stadnaam);
+
+		$.ajax({
+			url: "http://ap24-17.ict-lab.nl/mobile/newtip.php",
+			data: "uuid=" 		+ device.uuid
+				+ "&key=" 		+ storage.readKey()
+				+ "&title=" 	+ title
+				+ "&post="		+ post
+				+ "&land="		+ land
+				+ "&toggle="	+ stadtoggle
+				+ "&stadnaam="	+ stadnaam,
+			type: "POST",
+			dataType: "text",
+			contentType: "application/x-www-form-urlencoded; charset=utf-8",
+			success: function(data) {
+				var obj = JSON && JSON.parse(data) || $.parseJSON(data);
+				
+				console.log(obj);
+			}
+		});
+	}
+
+	this.tipZoeken = function(keyword) {
+
+		$.ajax({
+			url: "http://ap24-17.ict-lab.nl/mobile/zoeken.php",
+			data: "uuid=" 		+ device.uuid
+				+ "&key=" 		+ storage.readKey()
+				+ "&keyword="	+ keyword,
+			type: "POST",
+			dataType: "text",
+			contentType: "application/x-www-form-urlencoded; charset=utf-8",
+			success: function(data) {
+				var obj = JSON && JSON.parse(data) || $.parseJSON(data);
+				
+				console.log(obj);
+
+				var zoekenHTML = "";
+
+				obj.tips.forEach(function(element, index, array) {
+					console.log(element.title);
+
+					zoekenHTML += "<li class=\"table-view-cell\">";
+					zoekenHTML += "<h3>" + element.title + "</h3>";
+					zoekenHTML += "<h6>" + element.land;
+					(element.stadnaam != null) ? zoekenHTML += " - " + element.stadnaam + "</h6>" : zoekenHTML += "</h6>";
+					zoekenHTML += element.post;
+					zoekenHTML += "</br><label>" + ui.getStars(parseInt(element.rating / 10)) + "</label>";
+					zoekenHTML += "</li>";
+				});
+
+				$("#zoekContainer").html(zoekenHTML);
+			}
+		});
+	}
+
+	this.AccountValidate = function() {
+		$.ajax({
+			url: "http://ap24-17.ict-lab.nl/mobile/accountvalidate.php",
+			data: "uuid=" 		+ device.uuid
+				+ "&key=" 		+ storage.readKey(),
+			type: "POST",
+			dataType: "text",
+			contentType: "application/x-www-form-urlencoded; charset=utf-8",
+			success: function(data) {
+				var obj = JSON && JSON.parse(data) || $.parseJSON(data);
+				
+				console.log(obj);
+
+				if(obj.status != "activated") {
+					deviceIO.Alert("Uw account is nog niet geregisteerd! \n activeer uw account via de mail en probeer het opnieuw!", "Bericht", "Ok", null);
+					ajax.AccountValidate();
+				} else {
+					window.location.href = "index.html";
+				}
+			}
+		});
+	}
+
+	this.getNotifications = function() {
+		$.ajax({
+			url: "http://ap24-17.ict-lab.nl/mobile/getnotifications.php",
+			data: "uuid=" 		+ device.uuid
+				+ "&key=" 		+ storage.readKey(),
+			type: "POST",
+			dataType: "text",
+			contentType: "application/x-www-form-urlencoded; charset=utf-8",
+			success: function(data) {
+				var obj = JSON && JSON.parse(data) || $.parseJSON(data);
+				
+				console.log(obj);
+
+				var notificationsHTML = "";
+
+				if(obj.notifications.length === 0) {
+					notificationsHTML += "<li class=\"table-view-cell\">";
+					notificationsHTML += "Oh oh, er zijn hier geen notifications";
+					notificationsHTML += "</li>";
+				}
+
+				obj.notifications.forEach(function(element, index, array) {
+					notificationsHTML += "<li class=\"table-view-cell\">";
+					notificationsHTML += element.post;
+					notificationsHTML += "</li>";
+				});
+
+				$("#notificationsContainer").html(notificationsHTML);
+			}
+		});	
+	}
+
 
 }).apply(ajax);
 

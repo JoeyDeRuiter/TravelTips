@@ -21,6 +21,11 @@
 
     <!-- Make sure all your bars are the first things in your <body> -->
     <header class="bar bar-nav">
+
+        <a id="NavBackButton" class="btn btn-link btn-nav pull-left" href="#" data-transition="slide-out"> 
+            <span class="icon icon-left-nav"></span>
+        </a>
+
         <h1 class="title">TravelTips</h1>
     </header>
 
@@ -32,32 +37,8 @@
     <!-- Wrap all non-bar HTML in the .content div (this is actually what scrolls) -->
     <div class="content">
         <p class="content-padded">
-        
         <div class="card">
-        <ul class="table-view">
-            <li class="table-view-cell">
-                <a class="navigate-right" href="devtools.html" data-transition="slide-in">
-                    <strong>Developer tools</strong>
-                </a>
-            </li>
-
-            <li class="table-view-cell">
-                <a class="navigate-right" href="zoeken.html" data-transition="slide-in">
-                    <strong>Zoeken</strong>
-                </a>
-            </li>
-
-            <li class="table-view-cell">
-                <a class="navigate-right" href="landen.html" data-transition="slide-in">
-                    <strong>Landen</strong>
-                </a>
-            </li>
-
-            <li class="table-view-cell">
-                <a class="navigate-right" href="tipmaken.html" data-transition="slide-in">
-                    <strong>Tip maken</strong>
-                </a>
-            </li>
+        <ul class="table-view" id="landenContainer">
         </ul>
         </div>
     </div>
@@ -86,7 +67,7 @@
     </div>
 
 
-    <!-- Profile modal -->
+    <!-- Login modal -->
     <div id="modalProfile" class="modal">
         <header class="bar bar-nav">
             <a class="icon icon-close pull-right btn-nav" href="#modalProfile"></a>
