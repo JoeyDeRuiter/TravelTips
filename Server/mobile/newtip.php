@@ -27,6 +27,7 @@ if(isset($title) && isset($post) && isset($land)) {
 		// Check if login key is valid
 		if(user::validKey($uuid, $key)) {
 
+			$usr = new user();
 			user::makeNotification($usr->IDfromKey($uuid, $key), "U heeft net een nieuwe tip aangemaakt.");
 			
 			echo json_encode(["status" => true, "succes" => landen::makeTip($uuid, $key, $title, $post, $land, $toggle, $stad)]);

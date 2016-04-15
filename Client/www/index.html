@@ -36,12 +36,6 @@
         <div class="card">
         <ul class="table-view">
             <li class="table-view-cell">
-                <a class="navigate-right" href="devtools.html" data-transition="slide-in">
-                    <strong>Developer tools</strong>
-                </a>
-            </li>
-
-            <li class="table-view-cell">
                 <a class="navigate-right" href="zoeken.html" data-transition="slide-in">
                     <strong>Zoeken</strong>
                 </a>
@@ -76,9 +70,9 @@
             <form>
                 <input id="username" type="text" placeholder="Username">
                 <input id="password" type="password" placeholder="Password">
-                <button class="btn btn-positive btn-block" onclick="return false;">Login</button>
+                <button class="btn btn-positive btn-block" onclick="formVal.ValidateLogin(this.form); return false;">Login</button>
 
-                <button onclick="formVal.ValidateLogin(this.form); return false;"></button>
+                <!-- <button onclick="formVal.ValidateLogin(this.form); return false;"></button> -->
             </form>
 
             </div>
@@ -119,9 +113,9 @@
                 <input id="email" type="email" placeholder="Email">
                 <input id="username" type="text" placeholder="Username">
                 <input id="password" type="password" placeholder="Password">
-                <button class="btn btn-positive btn-block">Registreer</button>
+                <button class="btn btn-positive btn-block" onclick="formVal.ValidateRegister(this.form); return false;">Registreer</button>
 
-                <button onclick="formVal.ValidateRegister(this.form); return false;">Test button index</button>
+                <!-- <button onclick="formVal.ValidateRegister(this.form); return false;">Test button index</button> -->
 
             </form>
 

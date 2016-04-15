@@ -242,6 +242,8 @@ class user {
 					$stmt_del->bind_param('i', $db_id);
 					$stmt_del->execute();
 				}
+
+				return true;
 			}
 		}
 	}

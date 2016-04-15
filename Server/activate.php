@@ -6,4 +6,6 @@ require 'lib/include.php';
 $string = $_GET['q'];
 
 // Activate account
-user::activateAccount($string);
+if(user::activateAccount($string)) {
+	echo "Account geactiveerd";
+}

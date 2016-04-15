@@ -74,6 +74,8 @@ if(isset($email) && isset($username) && isset($password) && isset($uuid)) {
 					// Send mail
 					mail($email, $subject, $message, $header);
 
+					echo json_encode(["status" => true, "msg" => "Het account is geregisteerd!"]);
+
 				}else{
 					echo $stmt_activation->error;
 				}

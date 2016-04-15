@@ -62,9 +62,9 @@
             <form>
                 <input id="username" type="text" placeholder="Username">
                 <input id="password" type="password" placeholder="Password">
-                <button class="btn btn-positive btn-block" onclick="return false;">Login</button>
+                <button class="btn btn-positive btn-block" onclick="formVal.ValidateLogin(this.form); return false;">Login</button>
 
-                <button onclick="formVal.ValidateLogin(this.form); return false;"></button>
+                <!-- <button onclick="formVal.ValidateLogin(this.form); return false;"></button> -->
             </form>
 
             </div>
@@ -72,7 +72,7 @@
     </div>
 
 
-    <!-- Login modal -->
+    <!-- Profile modal -->
     <div id="modalProfile" class="modal">
         <header class="bar bar-nav">
             <a class="icon icon-close pull-right btn-nav" href="#modalProfile"></a>
@@ -105,9 +105,9 @@
                 <input id="email" type="email" placeholder="Email">
                 <input id="username" type="text" placeholder="Username">
                 <input id="password" type="password" placeholder="Password">
-                <button class="btn btn-positive btn-block">Registreer</button>
+                <button class="btn btn-positive btn-block" onclick="formVal.ValidateRegister(this.form); return false;">Registreer</button>
 
-                <button onclick="formVal.ValidateRegister(this.form); return false;">Test button index</button>
+                <!-- <button onclick="formVal.ValidateRegister(this.form); return false;">Test button index</button> -->
 
             </form>
 

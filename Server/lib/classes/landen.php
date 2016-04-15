@@ -210,7 +210,7 @@ class landen {
 			if($stmt = $mysqli->prepare("INSERT INTO `landen_tips`(`ID`, `land_id`, `poster_id`, `title`, `post`) VALUES (null, ?, ?, ?, ?)")) {
 
 				$user = new user();
-				$u¡ser_id = $user->IDfromKey($uuid, $key);
+				$user_id = $user->IDfromKey($uuid, $key);
 				$stmt->bind_param("iiss", $land, $user_id, $title, $post);
 
 				if($stmt->execute()) {
@@ -221,11 +221,11 @@ class landen {
 			}
 
 		} else { // Maak tip met steden
-			if($stmt = $mysqli->prepare("SELECT `ID`, `land_id`, `poster_id`, `title`, `post`, (null) as `stadnaam` FROM `landen_tips` UNION SELECT `ID`, `land_id`, `poster_id`, `title`, `post`, `stadnaam` FROM `steden_tips`")) {
+			if($stmt = $mysqli->prepare("INSERT INTO `steden_tips`(`ID`, `land_id`, `poster_id`, `title`, `post`, `stadnaam`) VALUES (null, ?, ?, ?, ?, ?)")) {
 
 				$user = new user();
 				$user_id = $user->IDfromKey($uuid, $key); // Get the user id from the db
-				$stad = strtolower($stad); // Force the stad to lower keys
+				$stad = ucfirst(strtolower($stad)); // Force the stad to lower keys
 				$stmt->bind_param("iisss", $land, $user_id, $title, $post, $stad);
 
 				if($stmt->execute()) {

@@ -1,7 +1,7 @@
 // TODO LIST
-// 
-// NOTIFICATIONS MENU
-// EMAIL RESET
+//  
+// CSS FIXED HOOFDLETTERS
+// EMAIL RESET?
 // 
 
 
@@ -448,6 +448,8 @@ var ajax = {};
 
 				if(obj.status === true) {
 					// TODOL Login
+					console.log("Uw account is geregisteerd");
+					deviceIO.Alert("Uw account is geregisteerd");
 				}else{
 					// Error
 					console.log(obj.msg);
@@ -667,7 +669,7 @@ var ajax = {};
 					landenHTML += "<li class=\"table-view-cell\">";
 					landenHTML += "<a class=\"navigate-right\" href=landtip.html?tip=" + element.id + " data-transition=\"slide-in\">";
 					landenHTML += "<h3>" + element.title + "</h3>";
-					landenHTML += element.post + "</br>Rating: " + element.rating + "</a>";
+					landenHTML += element.post + "</a>";
 					landenHTML += "</li>";
 				});
 
@@ -863,8 +865,6 @@ var ajax = {};
 
 	this.rateStadTip = function(value, id) {
 
-		alert(value);
-
 		$.ajax({
 			url: "http://ap24-17.ict-lab.nl/mobile/ratesteden.php",
 			data: "uuid=" 		+ device.uuid
@@ -984,6 +984,8 @@ var ajax = {};
 	}
 
 	this.TipMaken = function() {
+		errors = [];
+
 		if(storage.readKey() === null) {
 			console.log("Je moet ingelogd zijn om een tip te maken");
 			deviceIO.Alert("Je moet ingelogd zijn om een tip te maken", "Melding");
@@ -997,8 +999,34 @@ var ajax = {};
 			title = $("input#title").val(),
 			post = $("textarea#post").val();
 
+		if(land == null)
+			errors.push("Er is geen land toegevoegd");
 
-		alert(stadnaam);
+		if(title.length == 0)
+			errors.push("Er is geen title toegevoegd");
+
+		if(post.length == 0)
+			errors.push("Er is geen post toegevoegd");
+
+		if(stadtoggle == true && stadnaam.length == 0)
+			errors.push("Er is geen stadnaam toegevoegd");
+
+
+		if(errors.length > 0) {
+
+			var post = "";
+
+			errors.forEach(function(element, index, array) {
+				post += element + "\n";
+			});
+
+			console.log(post);
+
+			deviceIO.Alert(post);
+
+			return;
+		}
+
 
 		$.ajax({
 			url: "http://ap24-17.ict-lab.nl/mobile/newtip.php",
@@ -1016,6 +1044,11 @@ var ajax = {};
 				var obj = JSON && JSON.parse(data) || $.parseJSON(data);
 				
 				console.log(obj);
+
+				if(obj.succes == true) {
+					console.log("Tip gemaakt");
+					deviceIO.Alert("Tip aangemaakt");
+				}
 			}
 		});
 	}
