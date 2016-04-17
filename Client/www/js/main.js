@@ -1,10 +1,3 @@
-// TODO LIST
-//  
-// CSS FIXED HOOFDLETTERS
-// EMAIL RESET?
-// 
-
-
 // -- APP Namespace --------------------
 var app = {};
 
@@ -155,6 +148,7 @@ var www = {};
 
 		var urlParams = www.getQueryParams();
 		switch(url_str) {
+			case "reset.html": $('#modalLogin').removeClass('active'); break;
 			case "steden.html": ajax.getSteden(0, 5); console.log("Loading landen tips / steden"); break;
 			case "stedentips.html": ajax.getStedenTip(); console.log("Loading steden tips"); break;
 			case "landen.html": ajax.getLanden(0, 20); console.log("Loading landen data"); break;
@@ -346,6 +340,8 @@ var ajax = {};
 
 					ajax.AccountValidate();
 
+					$('#modalLogin').removeClass('active'); 
+
 					//window.location.href = "index.html";
 				}else {
 					deviceIO.Alert("Er ging iets fout, probeer het opnieuw", "Melding");
@@ -450,6 +446,8 @@ var ajax = {};
 					// TODOL Login
 					console.log("Uw account is geregisteerd");
 					deviceIO.Alert("Uw account is geregisteerd");
+
+					$('#modalRegister').removeClass('active'); 
 				}else{
 					// Error
 					console.log(obj.msg);
@@ -1110,6 +1108,30 @@ var ajax = {};
 		});
 	}
 
+	this.ResetPassword = function() {
+		var email = $("#resetEmail").val();
+
+
+		if(!formVal.validateEmail(email)) {
+			console.log("Ongeldig email adres");
+			deviceIO.Alert("Ongeldig email adres");
+			return;
+		}
+
+		$.ajax({
+			url: "http://ap24-17.ict-lab.nl/mobile/resetpassword.php",
+			data: "email=" 		+ email,
+			type: "POST",
+			dataType: "text",
+			contentType: "application/x-www-form-urlencoded; charset=utf-8",
+			success: function(data) {
+				var obj = JSON && JSON.parse(data) || $.parseJSON(data);
+				
+				console.log(obj);
+			}
+		});
+	}
+
 	this.getNotifications = function() {
 		$.ajax({
 			url: "http://ap24-17.ict-lab.nl/mobile/getnotifications.php",
@@ -1160,7 +1182,7 @@ var formVal = {};
 		var errorsTxt = "";
 
 
-		if(!validateEmail(email))
+		if(!formVal.validateEmail(email))
 			errors.push("Ongeldig email adres");
 		
 		if(username.length <= 3)
@@ -1207,7 +1229,7 @@ var formVal = {};
 
 	// Private function
 	// Validate the email
-	function validateEmail(email) {
+	this.validateEmail = function(email) {
     	var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     	return re.test(email);
 	}

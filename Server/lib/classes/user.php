@@ -182,6 +182,47 @@ class user {
 
 		return false;
 	}
+
+	public static function emailFromID($id) {
+		$mysqli = new database;
+
+		if(empty($id)) {
+			echo "ERROR: No email is filled in";
+			return false;
+		}
+
+		if($stmt = $mysqli->prepare("SELECT `email` FROM `users` WHERE `ID` = ?")) {
+			$stmt->bind_param('i', $id);
+			$stmt->execute();
+			$stmt->store_result();
+			$stmt->bind_result($db_email);
+
+			if($stmt->fetch())
+				return $db_email;
+		}
+	}
+
+	// Check if the email exists
+	// Arg: email (string)
+	// Retur : ID of the user
+	public static function IDfromEmail($email) {
+		$mysqli = new database;
+
+		if(empty($email)) {
+			echo "ERROR: No email is filled in";
+			return false;
+		}
+
+		if($stmt = $mysqli->prepare("SELECT `ID` FROM `users` WHERE `email` = ?")) {
+			$stmt->bind_param('s', $email);
+			$stmt->execute();
+			$stmt->store_result();
+			$stmt->bind_result($db_user_id);
+
+			if($stmt->fetch())
+				return $db_user_id;
+		}
+	}
  	
  	// Get the ID from the key
 	public function IDfromKey($uuid, $key) {
@@ -332,4 +373,57 @@ class user {
 		}
 	}
 
+	public static function resetPassword($id) {
+		$mysqli = new database;
+
+		if($stmt = $mysqli->prepare("INSERT INTO `reseturls`(`ID`, `user_id`, `string`) VALUES (null, ?, ?)")) {
+			$rng_string = rand::string(0);
+			$stmt->bind_param('is', $id, $rng_string);
+
+			if($stmt->execute()) {
+				// Send mail
+
+				$email = user::emailFromID($id);
+				$subject = "Wachtwoord reset";
+				$message = "Wachtwoord reset link: http://ap24-17.ict-lab.nl/reset.php?q=" . $rng_string;
+				$header = "From: noreply@traveltips.nl";
+
+				// Send mail
+				mail($email, $subject, $message, $header);
+
+				return true;
+			}
+			
+			return false;
+		}
+	}
+
+	public static function setPassword($string, $new_pass) {
+		$mysqli = new database;
+		
+		$id = "";
+		
+		$new_pass = password_hash($new_pass, PASSWORD_DEFAULT);
+		
+		if($stmt = $mysqli->prepare("SELECT `user_id` FROM `reseturls` WHERE `string` = ?")) {
+			$stmt->bind_param('s', $string);
+			$stmt->execute();
+			$stmt->store_result();
+			$stmt->bind_result($db_user_id);
+
+			if($stmt->fetch())
+				$id = $db_user_id;
+		}
+
+		// Update userpassword & delete old string from db
+		if($stmt = $mysqli->prepare("UPDATE `users` SET `password`= ? WHERE `ID` = ?")) {
+			$stmt->bind_param('si', $new_pass, $id);
+			
+			if($stmt->execute())
+				return true;
+		}
+		
+
+		return false;
+	}
 }
